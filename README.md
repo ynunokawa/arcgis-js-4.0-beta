@@ -1,7 +1,7 @@
 # ArcGIS API for JavaScript 4.0 Beta
 
-![3D](3d.gif)
-![3D](2Views.gif)
+<img src="3d.gif" width="500">
+<img src="2Views.gif" width="500">
 
 ## ライセンス
 Copyright 2015 Esri Japan Corporation.
