@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Polygon extrusion 3D - 4.0 beta 1</title>
+<style>
+  html, body {
+    padding: 0;
+    margin: 0;
+  }
+</style>
+
+<link rel="stylesheet" href="https://js.arcgis.com/4.0beta1/esri/css/esri.css">
+<script src="https://js.arcgis.com/4.0beta1/"></script>
+
+<script>
+var map, view;
+
+require([
+  "esri/Map",
+  "esri/Color",
+  "esri/views/SceneView",
+  "esri/layers/FeatureLayer",
+  "esri/symbols/PolygonSymbol3D",
+  "esri/symbols/ExtrudeSymbol3DLayer",
+  "esri/renderers/SimpleRenderer",
+  "dojo/domReady!"
+], function (Map, Color, SceneView, FeatureLayer, PolygonSymbol3D, ExtrudeSymbol3DLayer, SimpleRenderer) {
+
+  //Create map
+  map = new Map({
+    basemap: "streets"
+  });
+
+  //Create SceneView for 3d visualization
+  view = new SceneView({
+    container: "viewDiv",
+    map: map,
+    camera: {
+      position: [139.75, 35.55, 10000],
+      tilt: 50,
+      heading: 0
+    }
+  });
+
+  //Create featureLayer and add to the map
+  var featureLayer = new FeatureLayer({
+    url: "http://services.arcgis.com/wlVTGRSYTzAbjjiC/arcgis/rest/services/tatemono/FeatureServer/0",
+    opacity: 0.8,
+    elevationInfo: {
+      mode: "absoluteHeight"
+    }
+  });
+  map.add(featureLayer);
+
+  //Create the Renderer for the featureLayer,
+  var extrudePolygonRenderer = new SimpleRenderer({
+    symbol: new PolygonSymbol3D({
+      symbolLayers: [new ExtrudeSymbol3DLayer()]
+    }),
+    visualVariables: [{
+      type: "sizeInfo",
+      field: "HEIGHT",
+      minSize: 0,
+      maxSize: 6340000,
+      minDataValue: 0,
+      maxDataValue: 6340000
+    }, {
+      type: "colorInfo",
+      field: "HEIGHT",
+      minDataValue: 10,
+      maxDataValue: 300,
+      colors: [
+        new Color("white"),
+        new Color("red")
+      ]
+    }]
+  });
+
+  featureLayer.renderer = extrudePolygonRenderer;
+});
+</script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+</body>
+</html>
