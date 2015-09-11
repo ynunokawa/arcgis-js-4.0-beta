@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Looking at the stars</title>
+  <link rel="stylesheet" href="//jsdev.arcgis.com/4.0beta2/esri/css/esri.css">
+  <script src="//jsdev.arcgis.com/4.0beta2/"></script>
+  <style>
+    html, body, #mapDiv {
+      padding: 0;
+      margin: 0;
+    }
+    #searchDiv {
+      position: absolute;
+      z-index: 20;
+      top: 20px;
+      right: 74px;
+    }
+  </style>
+  <script>
+    var map;
+
+    require([
+      "esri/core/Scheduler",
+
+      "esri/Map",
+      "esri/views/SceneView",
+      "esri/layers/SceneLayer",
+      "esri/widgets/Search",
+
+      "dojo/dom",
+
+      "dojo/domReady!"
+    ],
+    function(
+      Scheduler,
+      Map, SceneView,
+      SceneLayer, Search,
+      dom
+    ) {
+
+      view = new SceneView({
+
+        // position in Brest, France
+        camera: {
+          position: {
+            x: 15471952.634498421,
+            y: 4192330.2368932376,
+            z: 5205.392542330548,
+            spatialReference: {
+              wkid: 102100
+            }
+          },
+          heading: 304.0036905934503,
+          tilt: 87.51137018816861,
+          fov: 80
+        },
+
+        container: "mapDiv",
+
+        environment: {
+          lighting: {
+            directShadows: true,
+            ambientOcclusion: true
+          }
+        },
+
+        map: new Map({
+          basemap: "satellite",
+          layers: [
+            new SceneLayer({
+              url: "//scene.arcgis.com/arcgis/rest/services/Hosted/Buildings_Brest/SceneServer/layers/0"
+            })
+          ]
+        }),
+
+        ui: {
+          components: ["logo"]
+        }
+      });
+
+      var searchWidget = new Search({
+        view: view
+      }, "searchDiv");
+      var text = "富士山";
+      var newText = "";
+
+      searchWidget.watch("searchResults", function(newValue, oldValue, property, object) {
+        console.log("New value: ", newValue,  //The new value of the property
+                   "<br>Old value: ", oldValue,  //The previous value of the changed property
+                   "<br>Watched property: ", property,  //In this example this value will always be "basemap.title"
+                   "<br>Watched object: ", object);  //In this example this value will always be the map object
+        if(oldValue !== null) {
+          if(property[0][0].name !== oldValue[0][0].name) {
+            view.animateTo({
+              position: {
+                x: view.camera.position.x,
+                y: view.camera.position.y,
+                z: view.camera.position.z,
+                spatialReference: {
+                  wkid: 102100
+                }
+              },
+              heading: view.camera.heading,
+              tilt: 87.51137018816861,
+              fov: 80
+            });
+            text = newtext;
+          }
+        }
+        else {
+          view.animateTo({
+            position: {
+              x: view.camera.position.x,
+              y: view.camera.position.y,
+              z: view.camera.position.z,
+              spatialReference: {
+                wkid: 102100
+              }
+            },
+            heading: view.camera.heading,
+            tilt: 87.51137018816861,
+            fov: 80
+          });
+          text = newtext;
+        }
+      }); 
+
+      console.log(searchWidget);
+      searchWidget.watch("value", function(newValue, oldValue, property, object) {
+        console.log("New value: ", newValue,  //The new value of the property
+                   "<br>Old value: ", oldValue,  //The previous value of the changed property
+                   "<br>Watched property: ", property,  //In this example this value will always be "basemap.title"
+                   "<br>Watched object: ", object);  //In this example this value will always be the map object
+        newtext = property;
+        dom.byId("placeName").innerHTML = newtext;
+        if(property === "") {
+          dom.byId("placeName").innerHTML = text;
+        }
+      }); 
+
+      var dateField = document.getElementById("dateField");
+      var minute = 60 * 1000;
+      view.environment.lighting.date = new Date("Jan 1 2015 12:00:00 GMT+0200");
+      function updateDatefield() {
+        var date = new Date();
+        date.setTime(view.environment.lighting.date.getTime() + 2 * minute);
+        view.environment.lighting.date = date;
+        dateField.innerHTML = date.toLocaleString("fr-FR", {
+          timeZone: "Europe/Paris"
+        });
+      };
+      updateDatefield();
+
+      view.then(function() {
+        // TODO: update when available as a env prop
+        view.environmentManager.realisticAtmosphere = true;
+
+        // every frame
+        handle = Scheduler.addFrameTask({
+          update: function() {
+            if (view.updating) {
+              return;
+            }
+            // increment time
+            updateDatefield();
+          }
+        })
+      });
+
+      
+    });
+  </script>
+</head>
+<body>
+  <div id="searchDiv"></div>
+  <div id="mapDiv" style="width: 100%; height: 100%; "></div>
+  <div style="position: absolute; left: 20px; top: 20px; color: white; font-family: Lucida Grande, Helvetica, sans-serif;">
+    <span id="placeName" style="font-size: 68px;">富士山</span>
+    <br />
+    <span id="dateField" style="font-size: 40px;"><span>
+  </div>
+</body>
+</html>
